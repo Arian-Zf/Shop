@@ -1,6 +1,7 @@
 */migrations/
 */migrations/*
-
+.gitignore
+*.sqlite3
 *.log
 *.pot
 *.pyc
