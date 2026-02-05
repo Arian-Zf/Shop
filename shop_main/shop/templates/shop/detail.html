@@ -31,7 +31,7 @@
             <div class="features">
                 <h3>ویژگی‌ها:</h3>
                 <ul>
-                {% for feature in product.feature.all %}
+                {% for feature in product.features.all %}
                     <li>{{ feature.name }}: {{ feature.value }}</li>
                 {% empty %}
                     <li>ویژگی‌ای ثبت نشده است.</li>
