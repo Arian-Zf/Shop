@@ -1,12 +1,41 @@
 <div class="cart-container">
     {% with item_count=cart|length %}
     <a href="#" class="cart-link">
-        <div class="cart-info-container">
-            <span class="cart-icon"></span>
-            <span class="cart-info">
-                <span class="item-count">{{ item_count }}</span>items, <span class="total-price">{{ cart.get_total_price }}</span>
-            </span>
-        </div>
+        <span class="cart-icon">🛒</span>
+        <span class="item-count">{{ item_count }}</span> items,
+        <span class="total-price">{{ cart.get_total_price }}</span>
     </a>
     {% endwith %}
 </div>
+
+<style>
+.cart-link {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: #f5f5f5;
+    color: #333;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.cart-link:hover {
+    background: #e8e8e8;
+}
+
+.cart-icon {
+    font-size: 20px;
+}
+
+.item-count {
+    font-weight: bold;
+    color: #007bff;
+}
+
+.total-price {
+    font-weight: bold;
+    color: #28a745;
+}
+</style>
