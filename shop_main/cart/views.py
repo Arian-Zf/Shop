@@ -4,14 +4,13 @@ from shop.models import Product
 from .cart import Cart
 from django.http import JsonResponse
 
-# Create your views here.
 
 
 @require_POST
-def add_to_cart(request, Product_id):
+def add_to_cart(request, product_id):
     try:
         cart = Cart(request)
-        product = get_object_or_404(Product, id=Product_id)
+        product = get_object_or_404(Product, id=product_id)
         cart.add(product)
         context = {
             'item_count': len(cart),

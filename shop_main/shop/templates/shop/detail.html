@@ -24,6 +24,7 @@
                 <br> 
                 <span class="discounted-price" >قیمت: {{ product.new_price }} تومان></span>
             </div>
+            <button type="button" id="add-cart" >Add to Cart</button>
             <div class="description" >
                 <h3>توضیحات محصول:</h3>
                 <p>{{ product.description }}</p>
@@ -39,6 +40,32 @@
                 </ul>
             </div>
         </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" ></script>
+    <script>
+        $(document).ready(function(){
+            $('#add-cart').click(function(){
+                var button = $(this);
+                $.ajax({
+
+                    url: "{% url 'cart:add_to_cart' product.id %}",
+                    method: "POST",
+
+                    data: {
+                        'csrfmiddlewaretoken': '{{ csrf_token }}',
+                    },
+                    success: function(response){
+                        $('#item-count').text(response.item_count);
+                        $('#total-price').text(response.total_price);
+                    },
+                    error: function(xhr, status, error){
+                        alert("خطا در افزودن به سبد خرید: " + error);
+                    }
+                });
+            });
+        })
+    </script>
+
 
 
 <style>
