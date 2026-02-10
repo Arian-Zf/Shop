@@ -1,10 +1,10 @@
 {% extends 'parent/base.html' %}
 {% load static %}
-{% block title %}cart{% endblock %}
-
+{% block title %}سبد خرید{% endblock %}
+{% block extra_css %} <link rel="stylesheet" href="{% static 'css/cart.css' %}">{% endblock %}
 {% block content %}
 <div class="header">
-    <h1>سبد خرید</h1>
+    <h1>🛒 سبد خرید</h1>
 </div>
 
 <div class="cart-content">
@@ -13,38 +13,48 @@
 
         <div class="product-item">
             <a href="{% url 'shop:product_detail' item.product.id item.product.slug %}">
-                <img src="{{ item.product.images.first.file.url }}" style="width: 200px;">
+                <img src="{{ item.product.images.first.file.url }}" alt="{{ item.product.name }}">
             </a>
 
             <div class="product-info">
                 <h3>
                     <a href="{% url 'shop:product_detail' item.product.id item.product.slug %}">
-                    نام محصول : {{ item.product.name }}
+                        {{ item.product.name }}
                     </a>
                 </h3>
-                <p> تعداد: <span>{{ item.quantity }}</span> </p>
-                <p> قیمت هر محصول: <span>{{ item.price }}</span> </p>
-                <p> قیمت کل : <span>{{ item.total }}</span> </p>
+                <p>تعداد: <span>{{ item.quantity }}</span></p>
+                <p>قیمت هر محصول: <span>{{ item.price|default:"رایگان" }}</span> تومان</p>
+                <p>قیمت کل: <span>{{ item.total }}</span> تومان</p>
             </div>
-            <div class="actions" >
-                <div class="quantity-add" >+</div>
-                <div class="quantity-decrease" >-</div>
-                <div class="quantity-remove" >حذف</div>
+            
+            <div class="actions">
+                <div class="quantity-add">+</div>
+                <div class="quantity-decrease">-</div>
+                <div class="quantity-remove">حذف</div>
             </div>
         </div>
 
+    {% empty %}
+        <div class="empty-cart">
+            <p style="text-align: center; padding: 40px; font-size: 18px; color: #999;">
+                سبد خرید شما خالی است.
+            </p>
+        </div>
     {% endfor %}
 
-    <div class="total_price" >
-        <p>قیمت کل: <span> {{ cart.get_total_price }} </span> تومان </p>
-        <p> هزینه ارسال: <span> {{ cart.get_post_price }} </span> تومان </p>
-        <p> مبلغ قابل پرداخت <span> {{ cart.get_final_price }} </span> تومان </p>
+    {% if cart %}
+    <div class="total_price">
+        <p>قیمت کل: <span>{{ cart.get_total_price }}</span> تومان</p>
+        <p>هزینه ارسال: <span>{{ cart.get_post_price }}</span> تومان</p>
+        <hr style="border: 1px solid #ddd; margin: 15px 0;">
+        <p style="font-size: 22px; color: #2c3e50;">مبلغ قابل پرداخت: <span>{{ cart.get_final_price }}</span> تومان</p>
     </div>
 
-    <div class="checkout-buttons" >
-        <div class="continue-btn"><a href="#">ادامه خرید </a></div>
-        <div class="back-btn" ><a href="{% url 'shop:product_list' %}">برگشت به لیست محصولات</a></div>
+    <div class="checkout-buttons">
+        <div class="continue-btn"><a href="#">ادامه خرید</a></div>
+        <div class="back-btn"><a href="{% url 'shop:product_list' %}">برگشت به لیست محصولات</a></div>
     </div>
+    {% endif %}
 
 </div>
 {% endblock %}
