@@ -61,5 +61,6 @@ class Cart:
         cart_dict = self.cart.copy()
         for product in products:
             cart_dict[str(product.id)]['product'] = product
-        for item in cart_dict.values(): 
+        for item in cart_dict.values():
+            item['total'] = item['price'] * item['quantity'] 
             yield item

@@ -1,0 +1,37 @@
+{% extends 'parent/base.html' %}
+{% load static %}
+{% block title %}cart{% endblock %}
+
+{% block content %}
+<div class="header">
+    <h1>سبد خرید</h1>
+</div>
+
+<div class="cart-content">
+
+    {% for item in cart %}
+
+        <div class="product-item">
+            <a href="{% url 'shop:product_detail' item.product.id item.product.slug %}">
+                <img src="{{ item.product.images.first.file.url }}" style="width: 200px;">
+            </a>
+
+            <div class="product-info">
+                <h3>
+                    <a href="{% url 'shop:product_detail' item.product.id item.product.slug %}">
+                    نام محصول : {{ item.product.name }}
+                    </a>
+                </h3>
+                <p> تعداد: <span>{{ item.quantity }}</span> </p>
+                <p> قیمت هر محصول: <span>{{ item.price }}</span> </p>
+                <p> قیمت کل : <span>{{ item.total }}</span> </p>
+            </div>
+
+        </div>
+
+        
+
+    {% endfor %}
+
+</div>
+{% endblock %}
