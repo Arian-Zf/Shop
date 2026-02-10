@@ -44,6 +44,8 @@ class Cart:
         if self.cart[product_id]['quantity'] > 0:
             self.cart[product_id]['quantity'] -= 1
 
+    def get_final_price(self):
+        return self.get_total_price() + self.get_post_price()
 
     def remove(self, product):
         product_id = str(product.id)
