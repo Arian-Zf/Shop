@@ -58,10 +58,10 @@
     <script>
         $(document).ready(function() {
             $('.quantity-add').click(function() {
-                updateQuantity($(this).closest('.product-item').data('item-id'),'add');
+                updateQuantity($(this).closest('.product-item').data('item-id'),'increment');
             });
             $('.quantity-decrease').click(function() {
-                updateQuantity($(this).closest('.product-item').data('item-id'),'decrease');
+                updateQuantity($(this).closest('.product-item').data('item-id'),'decrement');
             });
 
             function updateQuantity(itemId,action){
@@ -75,6 +75,8 @@
                         },
                         success: function(response) {
                             if (response.success) {
+                                $('#item-count').text(response.item_count);
+                                $('#total-price').text(response.total_price);
                                 location.reload();
                             } else {
                                 alert('خطا در بروزرسانی سبد خرید');
@@ -84,13 +86,7 @@
                             alert('خطا در ارسال درخواست');
                         }
                     });
-
-            } {
-
-
             }
-
-
         });
     </script>
 
