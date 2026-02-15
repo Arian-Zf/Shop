@@ -11,7 +11,7 @@
 
     {% for item in cart %}
 
-        <div class="product-item">
+        <div class="product-item"  data-item-id="{{ item.product.id }}" >
             <a href="{% url 'shop:product_detail' item.product.id item.product.slug %}">
                 <img src="{{ item.product.images.first.file.url }}" alt="{{ item.product.name }}">
             </a>
@@ -55,6 +55,44 @@
         <div class="back-btn"><a href="{% url 'shop:product_list' %}">برگشت به لیست محصولات</a></div>
     </div>
     {% endif %}
+    <script>
+        $(document).ready(function() {
+            $('.quantity-add').click(function() {
+                updateQuantity($(this).closest('.product-item').data('item-id'),'add');
+            });
+            $('.quantity-decrease').click(function() {
+                updateQuantity($(this).closest('.product-item').data('item-id'),'decrease');
+            });
+
+            function updateQuantity(itemId,action){
+                    $.ajax({
+                        url: "{% url 'cart:update_quantity' %}",
+                        method: "POST",
+                        data: {
+                            'item_id': itemId,
+                            'action': action,
+                            'csrfmiddlewaretoken': '{{ csrf_token }}'
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                location.reload();
+                            } else {
+                                alert('خطا در بروزرسانی سبد خرید');
+                            }
+                        },
+                        error: function() {
+                            alert('خطا در ارسال درخواست');
+                        }
+                    });
+
+            } {
+
+
+            }
+
+
+        });
+    </script>
 
 </div>
 {% endblock %}
