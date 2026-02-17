@@ -44,3 +44,22 @@ def update_quantity(request):
         return JsonResponse(context)
     except:
         return JsonResponse({'success':False,'error': 'An error occurred while updating the cart.'}) 
+    
+
+@require_POST
+def remove_item(reauesr):
+    pass
+    item_id = request.POST.get('item_id')
+    try:
+        product = get_object_or_404(Product, id=item_id)
+        cart = Cart(request)
+        cart.remove(product)
+        context = {
+            'item_count': len(cart),
+        }
+
+        return JsonResponse(context)
+    except:
+        return JsonResponse({'success':False,'error': 'An error occurred while updating the cart.'}) 
+    
+
