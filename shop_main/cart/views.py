@@ -3,6 +3,7 @@ from django.views.decorators.http import require_POST
 from shop.models import Product
 from .cart import Cart
 from django.http import JsonResponse
+# from .common.KaveSms import send_sms_normal, send_sms_with_template
 
 
 
@@ -16,6 +17,10 @@ def add_to_cart(request, product_id):
             'item_count': len(cart),
             'total_price':cart.get_total_price(),
         }
+        # send_sms_normal('09123456789','سفارش انجام شد')
+        # send_sms_with_template('09123456789',{'token':'65432', 'token10':'مصطفی رضایی'},'buyer-confirm-order')
+
+
         return JsonResponse(context)
     except:
         return JsonResponse({'error': 'An error occurred while adding the product to the cart.'})
