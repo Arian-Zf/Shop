@@ -1,7 +1,7 @@
 from django.urls import path
 from . import views
 
-app_name = 'cart'
+app_name = 'orders'
 
 urlpatterns = [
     path('verify-form', views.verify_form, name='verify_form'),
