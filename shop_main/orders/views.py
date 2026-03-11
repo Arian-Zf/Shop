@@ -20,6 +20,7 @@ def verify_phone(request):
                 tokens = {'token': ''.join(random.choices('0123456789', k=6))}
                 request.session['verification_code'] = tokens['token']
                 request.session['phone'] = phone
+                print(tokens)
                 send_sms_with_template(phone, tokens, 'verify')
                 messages.success(request, 'verificatio code send successfully ')
                 return redirect('orders:verify_code')
@@ -36,7 +37,9 @@ def verify_code(request):
             verification_code = request.session['verification_code']
             phone = request.session['phone']
             if code == verification_code:
-                user = ShopUser.objects.create_user(phone=phone, password='123456')
+                user = ShopUser.objects.create_user(phone=phone,)
+                user.set_password('123456')
+                user.save()
                 # send sms
                 print(user)
                 login(request, user)

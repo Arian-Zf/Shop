@@ -1,5 +1,7 @@
 <h2>بررسی کد تایید </h2>
-
+{% for message in messages %}
+    <div>message</div>
+{% endfor %}
 <form method="post">
     {% csrf_token %}
 
