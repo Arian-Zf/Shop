@@ -4,7 +4,7 @@ from .forms import PhoneVerificationForm
 from  account.models import ShopUser
 import random
 from django.contrib.auth import login
-from cart.common.KaveSms import send_sms_with_template
+# from cart.common.KaveSms import send_sms_with_template
 
 
 
@@ -21,7 +21,7 @@ def verify_phone(request):
                 request.session['verification_code'] = tokens['token']
                 request.session['phone'] = phone
                 print(tokens)
-                send_sms_with_template(phone, tokens, 'verify')
+                # send_sms_with_template(phone, tokens, 'verify')
                 messages.success(request, 'verificatio code send successfully ')
                 return redirect('orders:verify_code')
     else:
