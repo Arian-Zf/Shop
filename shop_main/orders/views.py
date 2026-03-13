@@ -12,6 +12,10 @@ from django.contrib.auth.decorators import login_required
 
 
 def verify_phone(request):
+    
+    if request.user.is_authenticated:
+        return redirect('orders:order_create')
+    
     if request.method == 'POST':
         form = PhoneVerificationForm(request.POST)
         if form.is_valid():
