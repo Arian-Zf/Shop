@@ -4,7 +4,7 @@ from . import views
 app_name = 'orders'
 
 urlpatterns = [
-    path('verify-form', views.verify_phone, name='verify_phone'),
-    path('verify-code', views.verify_code, name='verify_code'),
-
+    path('verify-form/', views.verify_phone, name='verify_phone'),
+    path('verify-code/', views.verify_code, name='verify_code'),
+    path('order-create/', views.order_create, name='order_create'),
 ]
