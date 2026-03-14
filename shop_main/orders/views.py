@@ -67,6 +67,8 @@ def order_create(request):
         form = OrderCreateForm(request.POST)
         if form.is_valid():
             order = form.save()
+            order.buyer=request.user
+            order.save()
             for item in cart:
                 OrderItem.objects.create(
                     order=order,
