@@ -8,6 +8,11 @@ from .forms import OrderCreateForm, OrderItem
 # from cart.common.KaveSms import send_sms_with_template
 from cart.cart import Cart 
 from django.contrib.auth.decorators import login_required
+from django.conf import settings
+import requests
+import json
+from django.conf import settings
+from django.http import HttpResponse
 
 
 
@@ -77,7 +82,7 @@ def order_create(request):
                     weight=item['weight'],
                 )
             cart.clear()
-            return redirect('shop:product_list')
+            return redirect('orders:request')
     else:
         form = OrderCreateForm()
 
@@ -85,102 +90,91 @@ def order_create(request):
 
 
 
-from django.conf import settings
-import requests
-import json
-
-# بررسی محیط تست (سندباکس) یا محیط واقعی
-# اگر متغیر SANDBOX در settings.py برابر با True باشد، درگاه در حالت تست کار می‌کند
 if settings.SANDBOX:
     sandbox = 'sandbox'
 else:
     sandbox = 'www'
 
-# آدرس‌های پایه‌ای ای‌پی‌آی (API) زرین‌پال بر اساس محیط تست یا واقعی
+
 ZP_API_REQUEST = f"https://{sandbox}.zarinpal.com/pg/rest/WebGate/PaymentRequest.json"
 ZP_API_VERIFY = f"https://{sandbox}.zarinpal.com/pg/rest/WebGate/PaymentVerification.json"
 ZP_API_STARTPAY = f"https://{sandbox}.zarinpal.com/pg/StartPay/"
 
-# اطلاعات اولیه برای ایجاد تراکنش
-amount = 1000  # مبلغ تراکنش (به تومان یا ریال بستگی به تنظیمات درگاه شما دارد) - الزامی
-description = "توضیحات مربوط به تراکنش را در این قسمت وارد کنید"  # الزامی
-phone = 'YOUR_PHONE_NUMBER'  # شماره تلفن کاربر - اختیاری
 
-# آدرس بازگشت کاربر پس از انجام پرداخت در درگاه بانکی
-# نکته مهم: این آدرس باید برای سرور واقعی (پروژه اصلی) تغییر کند و با آدرس سایت شما جایگزین شود.
 CallbackURL = 'http://127.0.0.1:8000/verify/'
 
 
 
 def send_request(request):
-    # آماده‌سازی اطلاعات برای ارسال به زرین‌پال
+    cart = Cart(request)
+    
+    description = ""
+    for item in cart:
+        description += str(item['product'].name) + ", "
+        
     data = {
-        "MerchantID": settings.MERCHANT,  # کد مرچنت شما که در settings.py قرار دارد
-        "Amount": amount,                 # مبلغ (از متغیرهای تعریف شده در بخش قبل)
-        "Description": description,       # توضیحات تراکنش
-        "Phone": phone,                   # شماره تماس خریدار
-        "CallbackURL": CallbackURL,       # آدرس بازگشت پس از پرداخت
+        "MerchantID": settings.MERCHANT,
+        "Amount": cart.get_final_price(),
+        "Description": description,
+        "Phone": request.user.phone,
+        "CallbackURL": CallbackURL,
     }
     
-    # تبدیل دیکشنری پایتون به فرمت JSON
     data = json.dumps(data)
     
-    # تنظیم هدرها (Headers) برای ارسال درخواست
     headers = {
-        'content-type': 'application/json',
+        'accept': 'application/json', 
+        'content-type': 'application/json', 
         'content-length': str(len(data))
     }
-    
     try:
-        # ارسال درخواست POST به سرور زرین‌پال
         response = requests.post(ZP_API_REQUEST, data=data, headers=headers, timeout=10)
         
-        # اگر ارتباط با سرور موفقیت‌آمیز بود (کد 200)
         if response.status_code == 200:
-            response_data = response.json()
+            response_json = response.json()
+            authority = response_json['Authority']
             
-            # در نسخه وب‌گیت زرین‌پال، کد 100 به معنای تایید اولیه و موفقیت است
-            if response_data['Status'] == 100:
-                return {
-                    'status': True, 
-                    'url': ZP_API_STARTPAY + str(response_data['Authority']),
-                    'authority': response_data['Authority']
-                }
+            if response_json['Status'] == 100:
+                cart.clear()
+                return redirect(ZP_API_STARTPAY + authority)
             else:
-                # اگر زرین‌پال خطایی برگرداند (مثلا مبلغ نامعتبر بود یا مرچنت اشتباه بود)
-                return {
-                    'status': False, 
-                    'code': str(response_data['Status'])
-                }
-        return response
-
+                return HttpResponse('Error')
+                
+        return HttpResponse('response failed')
+        
     except requests.exceptions.Timeout:
-        return {'status': False,'code': 'timeout'}
+        return HttpResponse('Timeout Error')
     except requests.exceptions.ConnectionError:
-        return {'status': False,'code': 'connection error'}
+        return HttpResponse('Connection Error')
+
 
 def verify(authority):
     data = {
         "MerchantID": settings.MERCHANT,
-        "Amount": amount,
         "Authority": authority,
     }
-    
     data = json.dumps(data)
-    
-    # set content length by data
+
     headers = {
-        'content-type': 'application/json',
+        'accept': 'application/json', 
+        'content-type': 'application/json', 
         'content-length': str(len(data))
     }
-    
-    response = requests.post(ZP_API_VERIFY, data=data, headers=headers)
-    
-    if response.status_code == 200:
-        response = response.json()
-        if response['Status'] == 100:
-            return {'status': True, 'RefID': response['RefID']}
-        else:
-            return {'status': False, 'code': str(response['Status'])}
+    try:
+        response = requests.post(ZP_API_VERIFY, data=data, headers=headers)
+        
+        if response.status_code == 200:
+            response_json = response.json()
+            reference_id = response_json['RefID']
             
-    return response
+            if response_json['Status'] == 100:
+                return HttpResponse(f'successful, RefID: {reference_id}')
+            else:
+                return HttpResponse('Error')
+                
+        return HttpResponse('response failed')
+        
+    except requests.exceptions.Timeout:
+        return HttpResponse('Timeout Error')
+    except requests.exceptions.ConnectionError:
+        return HttpResponse('Connection Error')
