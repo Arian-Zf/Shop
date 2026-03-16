@@ -4,7 +4,7 @@ from .forms import PhoneVerificationForm
 from  account.models import ShopUser
 import random
 from django.contrib.auth import login
-from .forms import OrderCreateForm, OrderItem
+from .forms import OrderCreateForm
 # from cart.common.KaveSms import send_sms_with_template
 from cart.cart import Cart 
 from django.contrib.auth.decorators import login_required
@@ -13,6 +13,7 @@ import requests
 import json
 from django.conf import settings
 from django.http import HttpResponse
+from .models import Order, OrderItem
 
 
 
@@ -82,6 +83,7 @@ def order_create(request):
                     weight=item['weight'],
                 )
             cart.clear()
+            request.session['order_id'] = order.id
             return redirect('orders:request')
     else:
         form = OrderCreateForm()
@@ -101,20 +103,19 @@ ZP_API_VERIFY = f"https://{sandbox}.zarinpal.com/pg/rest/WebGate/PaymentVerifica
 ZP_API_STARTPAY = f"https://{sandbox}.zarinpal.com/pg/StartPay/"
 
 
-CallbackURL = 'http://127.0.0.1:8000/verify/'
+CallbackURL = 'http://127.0.0.1:8000/order/verify/'
 
 
 
 def send_request(request):
-    cart = Cart(request)
-    
+    order = Order.objects.get(id=request.session['order_id'])
     description = ""
-    for item in cart:
-        description += str(item['product'].name) + ", "
+    for item in order.items.all():
+        description += item.product.name + ", "
         
     data = {
         "MerchantID": settings.MERCHANT,
-        "Amount": cart.get_final_price(),
+        "Amount": order.get_final_cost(),
         "Description": description,
         "Phone": request.user.phone,
         "CallbackURL": CallbackURL,
@@ -135,7 +136,6 @@ def send_request(request):
             authority = response_json['Authority']
             
             if response_json['Status'] == 100:
-                cart.clear()
                 return redirect(ZP_API_STARTPAY + authority)
             else:
                 return HttpResponse('Error')
@@ -148,12 +148,14 @@ def send_request(request):
         return HttpResponse('Connection Error')
 
 
-def verify(authority):
+def verify(request):
+    order = Order.objects.get(id=request.session['order_id'])
     data = {
         "MerchantID": settings.MERCHANT,
-        "Authority": authority,
+        "Amount": order.get_final_cost(),
+        "Authority": request.GET.get('Authority'),
     }
-    data = json.dumps(data)
+    data = json.dumps(data) 
 
     headers = {
         'accept': 'application/json', 
@@ -168,6 +170,11 @@ def verify(authority):
             reference_id = response_json['RefID']
             
             if response_json['Status'] == 100:
+                for item in order.items.all():
+                    item.product.inventory -= item.quantity
+                    item.product.save()
+                order.paid =True
+                order.save()
                 return HttpResponse(f'successful, RefID: {reference_id}')
             else:
                 return HttpResponse('Error')
