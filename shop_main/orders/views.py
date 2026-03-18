@@ -175,10 +175,10 @@ def verify(request):
                     item.product.save()
                 order.paid =True
                 order.save()
-                return HttpResponse(f'successful, RefID: {reference_id}')
+                return render(request, 'payment-tracking.html', {'success': True,'RefID': reference_id,'order_id': order.id,})
             else:
-                return HttpResponse('Error')
-                
+                return render(request, 'payment-tracking.html', {'success': False,})
+
         return HttpResponse('response failed')
         
     except requests.exceptions.Timeout:
