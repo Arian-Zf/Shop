@@ -1,0 +1,25 @@
+<h1>ثبت سفارش</h1>
+
+<table>
+    <thead>
+        <tr>
+            <th>شماره سفارش</th>
+            <th>تاریخ سفارش</th>
+            <th>وضعیت پرداخت</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for order in orders %}
+            <tr>
+                <td>{{ order.id }}</td>
+                <td>{{ order.created }}</td>
+                
+                {% if order.paid %}
+                    <td class="success">موفق</td>
+                {% else %}
+                    <td class="failure">ناموفق</td>
+                {% endif %}
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>

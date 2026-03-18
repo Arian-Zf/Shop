@@ -185,3 +185,9 @@ def verify(request):
         return HttpResponse('Timeout Error')
     except requests.exceptions.ConnectionError:
         return HttpResponse('Connection Error')
+
+
+def orders_list(request):
+    user = request.user
+    orders = Order.objects.filter(buyer=user)
+    return render(request, 'orders-list.html', {'orders': orders,})
