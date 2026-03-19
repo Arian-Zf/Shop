@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from .forms import PhoneVerificationForm
-from  account.models import ShopUser
+from account.models import ShopUser
 import random
 from django.contrib.auth import login
 from .forms import OrderCreateForm
@@ -9,12 +9,14 @@ from .forms import OrderCreateForm
 from cart.cart import Cart 
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
-import requests
-import json
-from django.conf import settings
 from django.http import HttpResponse
 from .models import Order, OrderItem
 
+# اضافه شدن کتابخانه‌های داخلی پایتون به جای requests
+import urllib.request
+import urllib.error
+import json
+import socket
 
 
 def verify_phone(request):
@@ -91,7 +93,6 @@ def order_create(request):
     return render(request, 'order_create.html', {'form': form, 'cart': cart})
 
 
-
 if settings.SANDBOX:
     sandbox = 'sandbox'
 else:
@@ -106,7 +107,7 @@ ZP_API_STARTPAY = f"https://{sandbox}.zarinpal.com/pg/StartPay/"
 CallbackURL = 'http://127.0.0.1:8000/order/verify/'
 
 
-
+# تغییرات اصلی در این تابع انجام شد
 def send_request(request):
     order = Order.objects.get(id=request.session['order_id'])
     description = ""
@@ -121,33 +122,39 @@ def send_request(request):
         "CallbackURL": CallbackURL,
     }
     
-    data = json.dumps(data)
+    # تبدیل داده‌ها به بایت برای ارسال با urllib
+    data_json = json.dumps(data).encode('utf-8')
     
     headers = {
         'accept': 'application/json', 
         'content-type': 'application/json', 
-        'content-length': str(len(data))
+        'content-length': str(len(data_json))
     }
+    
     try:
-        response = requests.post(ZP_API_REQUEST, data=data, headers=headers, timeout=10)
-        
-        if response.status_code == 200:
-            response_json = response.json()
-            authority = response_json['Authority']
-            
-            if response_json['Status'] == 100:
-                return redirect(ZP_API_STARTPAY + authority)
-            else:
-                return HttpResponse('Error')
+        req = urllib.request.Request(ZP_API_REQUEST, data=data_json, headers=headers, method='POST')
+        with urllib.request.urlopen(req, timeout=10) as response:
+            if response.getcode() == 200:
+                response_data = response.read().decode('utf-8')
+                response_json = json.loads(response_data)
+                authority = response_json['Authority']
                 
-        return HttpResponse('response failed')
-        
-    except requests.exceptions.Timeout:
-        return HttpResponse('Timeout Error')
-    except requests.exceptions.ConnectionError:
+                if response_json['Status'] == 100:
+                    return redirect(ZP_API_STARTPAY + authority)
+                else:
+                    return HttpResponse('Error')
+                    
+            return HttpResponse('response failed')
+            
+    except urllib.error.URLError as e:
+        if isinstance(e.reason, socket.timeout):
+            return HttpResponse('Timeout Error')
         return HttpResponse('Connection Error')
+    except socket.timeout:
+        return HttpResponse('Timeout Error')
 
 
+# تغییرات اصلی در این تابع انجام شد
 def verify(request):
     order = Order.objects.get(id=request.session['order_id'])
     data = {
@@ -155,36 +162,42 @@ def verify(request):
         "Amount": order.get_final_cost(),
         "Authority": request.GET.get('Authority'),
     }
-    data = json.dumps(data) 
+    
+    # تبدیل داده‌ها به بایت برای ارسال با urllib
+    data_json = json.dumps(data).encode('utf-8') 
 
     headers = {
         'accept': 'application/json', 
         'content-type': 'application/json', 
-        'content-length': str(len(data))
+        'content-length': str(len(data_json))
     }
+    
     try:
-        response = requests.post(ZP_API_VERIFY, data=data, headers=headers)
-        
-        if response.status_code == 200:
-            response_json = response.json()
-            reference_id = response_json['RefID']
-            
-            if response_json['Status'] == 100:
-                for item in order.items.all():
-                    item.product.inventory -= item.quantity
-                    item.product.save()
-                order.paid =True
-                order.save()
-                return render(request, 'payment-tracking.html', {'success': True,'RefID': reference_id,'order_id': order.id,})
-            else:
-                return render(request, 'payment-tracking.html', {'success': False,})
+        req = urllib.request.Request(ZP_API_VERIFY, data=data_json, headers=headers, method='POST')
+        with urllib.request.urlopen(req, timeout=10) as response:
+            if response.getcode() == 200:
+                response_data = response.read().decode('utf-8')
+                response_json = json.loads(response_data)
+                reference_id = response_json['RefID']
+                
+                if response_json['Status'] == 100:
+                    for item in order.items.all():
+                        item.product.inventory -= item.quantity
+                        item.product.save()
+                    order.paid = True
+                    order.save()
+                    return render(request, 'payment-tracking.html', {'success': True, 'RefID': reference_id, 'order_id': order.id})
+                else:
+                    return render(request, 'payment-tracking.html', {'success': False})
 
-        return HttpResponse('response failed')
-        
-    except requests.exceptions.Timeout:
-        return HttpResponse('Timeout Error')
-    except requests.exceptions.ConnectionError:
+            return HttpResponse('response failed')
+            
+    except urllib.error.URLError as e:
+        if isinstance(e.reason, socket.timeout):
+            return HttpResponse('Timeout Error')
         return HttpResponse('Connection Error')
+    except socket.timeout:
+        return HttpResponse('Timeout Error')
 
 
 def orders_list(request):
