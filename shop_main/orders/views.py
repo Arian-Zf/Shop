@@ -204,3 +204,83 @@ def orders_list(request):
     user = request.user
     orders = Order.objects.filter(buyer=user)
     return render(request, 'orders-list.html', {'orders': orders,})
+
+
+
+# def send_request(request):
+#     order = Order.objects.get(id=request.session['order_id'])
+#     description = ""
+#     for item in order.items.all():
+#         description += item.product.name + ", "
+        
+#     data = {
+#         "MerchantID": settings.MERCHANT,
+#         "Amount": order.get_final_cost(),
+#         "Description": description,
+#         "Phone": request.user.phone,
+#         "CallbackURL": CallbackURL,
+#     }
+    
+#     data = json.dumps(data)
+    
+#     headers = {
+#         'accept': 'application/json', 
+#         'content-type': 'application/json', 
+#         'content-length': str(len(data))
+#     }
+#     try:
+#         response = requests.post(ZP_API_REQUEST, data=data, headers=headers, timeout=10)
+        
+#         if response.status_code == 200:
+#             response_json = response.json()
+#             authority = response_json['Authority']
+            
+#             if response_json['Status'] == 100:
+#                 return redirect(ZP_API_STARTPAY + authority)
+#             else:
+#                 return HttpResponse('Error')
+                
+#         return HttpResponse('response failed')
+        
+#     except requests.exceptions.Timeout:
+#         return HttpResponse('Timeout Error')
+#     except requests.exceptions.ConnectionError:
+#         return HttpResponse('Connection Error')
+
+# def verify(request):
+#     order = Order.objects.get(id=request.session['order_id'])
+#     data = {
+#         "MerchantID": settings.MERCHANT,
+#         "Amount": order.get_final_cost(),
+#         "Authority": request.GET.get('Authority'),
+#     }
+#     data = json.dumps(data) 
+
+#     headers = {
+#         'accept': 'application/json', 
+#         'content-type': 'application/json', 
+#         'content-length': str(len(data))
+#     }
+#     try:
+#         response = requests.post(ZP_API_VERIFY, data=data, headers=headers)
+        
+#         if response.status_code == 200:
+#             response_json = response.json()
+#             reference_id = response_json['RefID']
+            
+#             if response_json['Status'] == 100:
+#                 for item in order.items.all():
+#                     item.product.inventory -= item.quantity
+#                     item.product.save()
+#                 order.paid =True
+#                 order.save()
+#                 return render(request, 'payment-tracking.html', {'success': True,'RefID': reference_id,'order_id': order.id,})
+#             else:
+#                 return render(request, 'payment-tracking.html', {'success': False,})
+
+#         return HttpResponse('response failed')
+        
+#     except requests.exceptions.Timeout:
+#         return HttpResponse('Timeout Error')
+#     except requests.exceptions.ConnectionError:
+#         return HttpResponse('Connection Error')
