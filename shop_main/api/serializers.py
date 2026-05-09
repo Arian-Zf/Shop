@@ -1,10 +1,6 @@
 from rest_framework import serializers
-
-
-from rest_framework import serializers
-from shop.models import Product, ProductFeature
-from orders.models import Order
 from account.models import ShopUser
+from shop.models import *
 
 
 class ProductFeatureSerializer(serializers.ModelSerializer):
