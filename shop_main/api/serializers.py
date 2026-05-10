@@ -16,3 +16,8 @@ class ProductSerializer(serializers.ModelSerializer):
         model = Product
         fields = ['id', 'name', 'description', 'new_price', 'features']
 
+
+class ShopUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ShopUser
+        fields = ('id', 'phone', 'first_name', 'last_name', 'address', 'is_staff', 'date_joined', 'is_active')
