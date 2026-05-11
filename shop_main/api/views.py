@@ -5,7 +5,8 @@ from rest_framework import generics
 from rest_framework.views import APIView
 from account.models import ShopUser
 from rest_framework.response import Response
-from rest_framework .permissions import AllowAny
+from rest_framework .permissions import AllowAny , IsAuthenticated, IsAdminUser
+from rest_framework.authentication import BasicAuthentication
 
 
 class ProductListAPIView(generics.ListAPIView):
@@ -19,7 +20,9 @@ class ProductDetailAPIView(generics.RetrieveAPIView):
 
 
 class UserListAPIViews(APIView):
-    permission_classes = [AllowAny]
+    authentication_classes = [BasicAuthentication]
+    permission_classes = [IsAdminUser]
+
     def get(self, request, *args, **kwargs):
         users = ShopUser.objects.all()
         serializer = ShopUserSerializer(users, many=True)
