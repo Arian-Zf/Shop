@@ -28,11 +28,7 @@ class UserListAPIViews(APIView):
         serializer = ShopUserSerializer(users, many=True)
         return Response(serializer.data)
 
-class UserListAPIView(APIView):
-    authentication_classes = [BasicAuthentication]
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request, *args, **kwargs):
-        users = ShopUser.objects.all()
-        serializer = ShopUserSerializer(users, many=True)
-        return Response(serializer.data)
+class UserRegistrationAPIView(generics.CreateAPIView):
+    permission_classes = [AllowAny]
+    queryset = ShopUser.objects.all()
+    serializer_class = UserRegistrationSerializer
