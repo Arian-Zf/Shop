@@ -27,3 +27,12 @@ class UserListAPIViews(APIView):
         users = ShopUser.objects.all()
         serializer = ShopUserSerializer(users, many=True)
         return Response(serializer.data)
+
+class UserListAPIView(APIView):
+    authentication_classes = [BasicAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        users = ShopUser.objects.all()
+        serializer = ShopUserSerializer(users, many=True)
+        return Response(serializer.data)
