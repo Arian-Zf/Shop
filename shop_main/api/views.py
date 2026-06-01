@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework .permissions import AllowAny , IsAuthenticated, IsAdminUser
 from rest_framework.authentication import BasicAuthentication
 from rest_framework.decorators import action
+from orders.models import Order
 
 # class ProductListAPIView(generics.ListAPIView):
 #     queryset = Product.objects.all()
@@ -48,3 +49,10 @@ class UserRegistrationAPIView(generics.CreateAPIView):
     permission_classes = [AllowAny]
     queryset = ShopUser.objects.all()
     serializer_class = UserRegistrationSerializer
+
+
+class OrderListAPIView(generics):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+
+    

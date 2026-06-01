@@ -14,4 +14,5 @@ urlpatterns = [
         path('users/', views.UserListAPIViews.as_view(), name='user-list-api'),
         path('register/', views.UserRegistrationAPIView.as_view(), name='register_api'),
         path('', include(router.urls)),
-]
+        path('orders/', views.OrderListAPIView.as_view(), name='order-list-api'),
+] 
