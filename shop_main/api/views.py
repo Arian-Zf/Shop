@@ -9,7 +9,7 @@ from rest_framework .permissions import AllowAny , IsAuthenticated, IsAdminUser
 from rest_framework.authentication import BasicAuthentication
 from rest_framework.decorators import action
 from orders.models import Order
-from .permissions import IsAdminTabriz
+from .permissions import IsAdminTabriz, IsBuyer
 
 # class ProductListAPIView(generics.ListAPIView):
 #     queryset = Product.objects.all()
@@ -59,3 +59,7 @@ class OrderListAPIView(generics.ListAPIView):
 
 
     
+class OrderDetailAPIView(generics.RetrieveAPIView):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+    permission_classes = [IsBuyer]
